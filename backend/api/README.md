@@ -6,7 +6,7 @@
 python -m venv venv
 venv\Scripts\activate
 ```
-#### lin
+#### lint
 ```shell
 python3 -m venv venv
 source venv/bin/activate
