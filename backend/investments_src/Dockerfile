@@ -1,10 +1,19 @@
-FROM python:3.12.7-alpine
+FROM python:3.12-slim
 
-RUN apk add --no-cache make build-base
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    make \
+    gcc \
+    musl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir poetry
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/usr/src
+    PYTHONPATH="/usr/src"
 
 WORKDIR /investments-app
 
@@ -15,5 +24,11 @@ RUN pip install --upgrade pip && \
     poetry install --no-root --no-dev
 
 COPY . .
+
+RUN mkdir -p /usr/local/share/ca-certificates/russian-trusted && \
+    cp ./mincifri_certs/russian_trusted_root_ca_pem.crt /usr/local/share/ca-certificates/russian-trusted/russian_trusted_root_ca.crt && \
+    cp ./mincifri_certs/russian_trusted_sub_ca_pem.crt /usr/local/share/ca-certificates/russian-trusted/russian_trusted_sub_ca.crt
+
+RUN update-ca-certificates
 
 RUN chmod +x Makefile

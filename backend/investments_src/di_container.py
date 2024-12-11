@@ -3,13 +3,24 @@ from typing import AsyncIterable
 import aiohttp
 import redis.asyncio as aioredis
 from dishka import Provider, provide, Scope, make_async_container
+from gigachat import GigaChat
 
 from bonds_gateway import BondsGateway
 from currency_gateway import CurrenciesGateway
 from gold_gateway import GoldGateway
 from investments_service import InvestmentsService
+from deposit_gateway import DepositGateway
+from news.news_gateway import NewsGateway
+from predict.config import GigaChatSettings
+from predict.gateway import PredictionGateway
 from redis_config import RedisConfig
 from share_gateway import SharesGateway
+
+
+class SettingsProvider(Provider):
+    @provide(scope=Scope.APP)
+    def provide_config(self) -> GigaChatSettings:
+        return GigaChatSettings.from_env()
 
 
 class RedisProvider(Provider):
@@ -40,9 +51,23 @@ class GatewayProvider(Provider):
     bonds_gate = provide(BondsGateway, scope=Scope.REQUEST)
     currencies_gate = provide(CurrenciesGateway, scope=Scope.REQUEST)
     gold_gate = provide(GoldGateway, scope=Scope.REQUEST)
+    deposit_gate = provide(DepositGateway, scope=Scope.REQUEST)
+    news_gate = provide(NewsGateway, scope=Scope.REQUEST)
+    giga_chat = provide(GigaChat, scope=Scope.REQUEST)
+    prediction_gate = provide(PredictionGateway, scope=Scope.REQUEST)
 
 
 class ServiceProvider(Provider):
+    @provide(scope=Scope.REQUEST, provides=GigaChat)
+    def provide_giga_chat(self, giga_chat_settings: GigaChatSettings) -> GigaChat:
+        return GigaChat(
+            credentials=giga_chat_settings.credentials,
+            scope=giga_chat_settings.scope,
+            model=giga_chat_settings.model,
+        )
     investments_service = provide(InvestmentsService, scope=Scope.REQUEST)
 
-container = make_async_container(RedisProvider(), AsyncHTTPSession(), GatewayProvider(), ServiceProvider())
+
+container = make_async_container(
+    SettingsProvider(), RedisProvider(), AsyncHTTPSession(), GatewayProvider(), ServiceProvider()
+)

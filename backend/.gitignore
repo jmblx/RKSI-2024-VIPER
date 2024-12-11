@@ -5,4 +5,3 @@ minio-config/
 *.pyc
 __pycache__/
 
-.idea/
