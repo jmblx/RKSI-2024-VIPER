@@ -5,3 +5,4 @@
 ## logs - логи nginx
 ## static - статический контент, раздаваемый nginx для его оптимизации.
 ## Все оркеструется docker-compose.yaml файлом.
+## Настроен ci/cd пайплайн через github actions workflows (сборка образа и деплой через ssh по)
